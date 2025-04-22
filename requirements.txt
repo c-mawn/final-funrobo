@@ -14,4 +14,3 @@ python-xlib==0.33
 pyYAML==6.0.2
 six==1.17.0
 tk==0.1.0
-

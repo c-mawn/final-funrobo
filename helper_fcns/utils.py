@@ -6,11 +6,9 @@ from functools import singledispatch
 
 PI = 3.1415926535897932384
 
-
 @dataclass
 class State:
-    """This dataclass represents the system state (pos and vel)"""
-
+    """This dataclass represents the system state (pos and vel) """
     x: float = 0.0
     y: float = 0.0
     theta: float = 0.0
@@ -21,13 +19,11 @@ class State:
 
 @dataclass
 class Controls:
-    """This dataclass represents the system controls"""
-
+    """This dataclass represents the system controls """
     v: float = 0.0
     w: float = 0.0
     vx: float = 0.0
     vy: float = 0.0
-
 
 @dataclass
 class EndEffector:
@@ -49,14 +45,14 @@ def rotm_to_euler(R) -> tuple:
         tuple: Roll, pitch, and yaw angles (in radians).
 
     """
-
-    r11 = R[0, 0] if abs(R[0, 0]) > 1e-7 else 0.0
-    r12 = R[0, 1] if abs(R[0, 1]) > 1e-7 else 0.0
-    r21 = R[1, 0] if abs(R[1, 0]) > 1e-7 else 0.0
-    r22 = R[1, 1] if abs(R[1, 1]) > 1e-7 else 0.0
-    r32 = R[2, 1] if abs(R[2, 1]) > 1e-7 else 0.0
-    r33 = R[2, 2] if abs(R[2, 2]) > 1e-7 else 0.0
-    r31 = R[2, 0] if abs(R[2, 0]) > 1e-7 else 0.0
+    
+    r11 = R[0,0] if abs(R[0,0]) > 1e-7 else 0.0
+    r12 = R[0,1] if abs(R[0,1]) > 1e-7 else 0.0
+    r21 = R[1,0] if abs(R[1,0]) > 1e-7 else 0.0
+    r22 = R[1,1] if abs(R[1,1]) > 1e-7 else 0.0
+    r32 = R[2,1] if abs(R[2,1]) > 1e-7 else 0.0
+    r33 = R[2,2] if abs(R[2,2]) > 1e-7 else 0.0
+    r31 = R[2,0] if abs(R[2,0]) > 1e-7 else 0.0
 
     # print(f"R : {R}")
 
@@ -70,32 +66,33 @@ def rotm_to_euler(R) -> tuple:
     #     r12 = min(1.0, max(r12, -1.0))
     #     roll = -math.asin(r12)
     # else:
-    #     roll = math.atan2(r32, r33)
+    #     roll = math.atan2(r32, r33)        
     #     yaw = math.atan2(r21, r11)
     #     denom = math.sqrt(r11 ** 2 + r21 ** 2)
     #     pitch = math.atan2(-r31, denom)
 
     if abs(r31) != 1:
-        roll = math.atan2(r32, r33)
+        roll = math.atan2(r32, r33)        
         yaw = math.atan2(r21, r11)
-        denom = math.sqrt(r11**2 + r21**2)
+        denom = math.sqrt(r11 ** 2 + r21 ** 2)
         pitch = math.atan2(-r31, denom)
-
+    
     elif r31 == 1:
         # pitch is close to -90 deg, i.e. cos(pitch) = 0.0
         # there are an infinitely many solutions, so we choose one possible solution where yaw = 0
         # pitch, yaw = -PI/2, 0.0
         # roll = -math.atan2(r12, r22)
-        pitch, roll = -PI / 2, 0.0
+        pitch, roll = -PI/2, 0.0
         yaw = -math.atan2(r12, r22)
-
+    
     elif r31 == -1:
         # pitch is close to 90 deg, i.e. cos(pitch) = 0.0
         # there are an infinitely many solutions, so we choose one possible solution where yaw = 0
         # pitch, yaw = PI/2, 0.0
         # roll = math.atan2(r12, r22)
-        pitch, roll = PI / 2, 0.0
+        pitch, roll = PI/2, 0.0
         yaw = math.atan2(r12, r22)
+        
 
     return roll, pitch, yaw
 
@@ -110,24 +107,12 @@ def dh_to_matrix(dh_params: list) -> np.ndarray:
         np.ndarray: A 4x4 transformation matrix.
     """
     theta, d, a, alpha = dh_params
-    return np.array(
-        [
-            [
-                cos(theta),
-                -sin(theta) * cos(alpha),
-                sin(theta) * sin(alpha),
-                a * cos(theta),
-            ],
-            [
-                sin(theta),
-                cos(theta) * cos(alpha),
-                -cos(theta) * sin(alpha),
-                a * sin(theta),
-            ],
-            [0, sin(alpha), cos(alpha), d],
-            [0, 0, 0, 1],
-        ]
-    )
+    return np.array([
+        [cos(theta), -sin(theta) * cos(alpha), sin(theta) * sin(alpha), a * cos(theta)],
+        [sin(theta), cos(theta) * cos(alpha), -cos(theta) * sin(alpha), a * sin(theta)],
+        [0, sin(alpha), cos(alpha), d],
+        [0, 0, 0, 1]
+    ])
 
 
 def euler_to_rotm(rpy: tuple) -> np.ndarray:
@@ -139,27 +124,15 @@ def euler_to_rotm(rpy: tuple) -> np.ndarray:
     Returns:
         np.ndarray: A 3x3 rotation matrix.
     """
-    R_x = np.array(
-        [
-            [1, 0, 0],
-            [0, math.cos(rpy[0]), -math.sin(rpy[0])],
-            [0, math.sin(rpy[0]), math.cos(rpy[0])],
-        ]
-    )
-    R_y = np.array(
-        [
-            [math.cos(rpy[1]), 0, math.sin(rpy[1])],
-            [0, 1, 0],
-            [-math.sin(rpy[1]), 0, math.cos(rpy[1])],
-        ]
-    )
-    R_z = np.array(
-        [
-            [math.cos(rpy[2]), -math.sin(rpy[2]), 0],
-            [math.sin(rpy[2]), math.cos(rpy[2]), 0],
-            [0, 0, 1],
-        ]
-    )
+    R_x = np.array([[1, 0, 0],
+                    [0, math.cos(rpy[0]), -math.sin(rpy[0])],
+                    [0, math.sin(rpy[0]), math.cos(rpy[0])]])
+    R_y = np.array([[math.cos(rpy[1]), 0, math.sin(rpy[1])],
+                    [0, 1, 0],
+                    [-math.sin(rpy[1]), 0, math.cos(rpy[1])]])
+    R_z = np.array([[math.cos(rpy[2]), -math.sin(rpy[2]), 0],
+                    [math.sin(rpy[2]), math.cos(rpy[2]), 0],
+                    [0, 0, 1]])
     return R_z @ R_y @ R_x
 
 
@@ -179,7 +152,6 @@ class SimData:
         vx (List[float]): x-component of linear velocity over time.
         vy (List[float]): y-component of linear velocity over time.
     """
-
     x: List[float] = field(default_factory=list)
     y: List[float] = field(default_factory=list)
     theta: List[float] = field(default_factory=list)
@@ -277,12 +249,12 @@ def near_zero(arr: np.ndarray) -> np.ndarray:
 
 
 def wraptopi(angle_rad):
-    """Wraps an angle in radians to the range [-pi, pi).
+  """Wraps an angle in radians to the range [-pi, pi).
 
-    Args:
-      angle_rad: The angle in radians.
+  Args:
+    angle_rad: The angle in radians.
 
-    Returns:
-      The wrapped angle in radians.
-    """
-    return (angle_rad + math.pi) % (2 * math.pi) - math.pi
+  Returns:
+    The wrapped angle in radians.
+  """
+  return (angle_rad + math.pi) % (2 * math.pi) - math.pi
