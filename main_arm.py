@@ -8,13 +8,14 @@ import math
 from helper_fcns.utils import wraptopi, EndEffector
 from modules.trajectory_generator import MultiAxisTrajectoryGenerator
 import time
-from pynput import keyboard
+
+# from pynput import keyboard
 import yaml
 
 
 class Visualizer:
     """
-    A class for visualizing and controlling a robot manipulator, including forward and inverse kinematics, 
+    A class for visualizing and controlling a robot manipulator, including forward and inverse kinematics,
     and velocity control through a Tkinter GUI.
     """
 
@@ -27,18 +28,22 @@ class Visualizer:
             args (argparse.Namespace): The command-line arguments.
         """
         self.root = root
-        self.root.title(f"Robot Manipulator Visualization for a {args.robot_type} robot")
+        self.root.title(
+            f"Robot Manipulator Visualization for a {args.robot_type} robot"
+        )
 
         self.robot_type = args.robot_type
         self.robot = Robot(type=self.robot_type)
 
         # Variables for velocity kinematics
         self.vk_status = False
-        self.vk_status_font = ('black')
+        self.vk_status_font = "black"
 
         # Keyboard listener for controlling velocity
-        self.listener = keyboard.Listener(on_press=self.on_press, on_release=self.on_release)
-        self.listener.start()
+        # self.listener = keyboard.Listener(
+        #     on_press=self.on_press, on_release=self.on_release
+        # )
+        # self.listener.start()
         self.v = [0, 0, 0]
 
         # Create the control frame for the GUI
@@ -47,7 +52,7 @@ class Visualizer:
 
         # Set up the kinematics panel
         self.set_kinematics_panel()
-        
+
         # Create the plot frame
         self.plot_frame = ttk.Frame(root)
         self.plot_frame.grid(row=0, column=1, padx=10, pady=10)
@@ -56,7 +61,6 @@ class Visualizer:
         self.canvas = FigureCanvasTkAgg(self.robot.fig, master=self.plot_frame)
         self.canvas.get_tk_widget().grid(row=0, column=0)
 
-        
     def set_kinematics_panel(self):
         """
         Sets up the control panel for forward kinematics, inverse kinematics, and velocity kinematics.
@@ -71,7 +75,9 @@ class Visualizer:
         row_number = 0
 
         # Add title for the forward kinematics entry field
-        self.fk_entry_title = ttk.Label(self.control_frame, text="Forward Kinematics:", font=("Arial", 13, "bold"))
+        self.fk_entry_title = ttk.Label(
+            self.control_frame, text="Forward Kinematics:", font=("Arial", 13, "bold")
+        )
         self.fk_entry_title.grid(column=0, row=row_number, columnspan=2, pady=(0, 10))
         row_number += 1
 
@@ -87,7 +93,9 @@ class Visualizer:
             row_number += 1
 
         # Create the Move button
-        self.fk_move_button = ttk.Button(self.control_frame, text="Move", command=self.joints_from_button)
+        self.fk_move_button = ttk.Button(
+            self.control_frame, text="Move", command=self.joints_from_button
+        )
         self.fk_move_button.grid(column=0, row=row_number, columnspan=2, pady=5)
         row_number += 1
 
@@ -98,26 +106,36 @@ class Visualizer:
             joint_label.grid(column=0, row=row_number, sticky=tk.W)
 
             joint_value = tk.DoubleVar()
-            slider = ttk.Scale(self.control_frame, from_=-180, to=180, variable=joint_value, command=self.joints_from_sliders)
+            slider = ttk.Scale(
+                self.control_frame,
+                from_=-180,
+                to=180,
+                variable=joint_value,
+                command=self.joints_from_sliders,
+            )
             slider.grid(column=1, row=row_number)
             row_number += 1
             self.joint_scales.append(joint_value)
 
         # Create the Reset button
-        self.fk_reset_button = ttk.Button(self.control_frame, text="Reset", command=self.reset_joints)
+        self.fk_reset_button = ttk.Button(
+            self.control_frame, text="Reset", command=self.reset_joints
+        )
         self.fk_reset_button.grid(column=0, row=row_number, columnspan=2, pady=5)
         row_number += 3
 
         # ------------------------------------------------------------------------------------------------
         # Inverse position kinematics
         # ------------------------------------------------------------------------------------------------
-        self.ik_entry_title = ttk.Label(self.control_frame, text="Inverse Kinematics:", font=("Arial", 13, "bold"))
+        self.ik_entry_title = ttk.Label(
+            self.control_frame, text="Inverse Kinematics:", font=("Arial", 13, "bold")
+        )
         self.ik_entry_title.grid(column=0, row=row_number, columnspan=2, pady=(0, 10))
         row_number += 1
 
         # Create end-effector pose field and labels
         self.pose_button = []
-        pose_labels = ['X(m)', 'Y(m)', 'Z(m)', 'RotX(rad)', 'RotY(rad)', 'RotZ(rad)']
+        pose_labels = ["X(m)", "Y(m)", "Z(m)", "RotX(rad)", "RotY(rad)", "RotZ(rad)"]
         for i in range(len(pose_labels)):
             position_label = ttk.Label(self.control_frame, text=pose_labels[i] + ":")
             position_label.grid(column=0, row=row_number, sticky=tk.W)
@@ -128,47 +146,72 @@ class Visualizer:
             self.pose_button.append(position_value)
 
         # Create buttons for inverse kinematics solutions
-        self.ik1_move_button = ttk.Button(self.control_frame, text="Solve 1", command=self.solve_IK1)
+        self.ik1_move_button = ttk.Button(
+            self.control_frame, text="Solve 1", command=self.solve_IK1
+        )
         self.ik1_move_button.grid(column=0, row=row_number, columnspan=1, pady=2)
 
-        self.ik2_move_button = ttk.Button(self.control_frame, text="Solve 2", command=self.solve_IK2)
+        self.ik2_move_button = ttk.Button(
+            self.control_frame, text="Solve 2", command=self.solve_IK2
+        )
         self.ik2_move_button.grid(column=1, row=row_number, columnspan=1, pady=2)
 
-        self.ik3_move_button = ttk.Button(self.control_frame, text="Num Solve", command=self.numerical_solve)
+        self.ik3_move_button = ttk.Button(
+            self.control_frame, text="Num Solve", command=self.numerical_solve
+        )
         self.ik3_move_button.grid(column=2, row=row_number, columnspan=1, pady=2)
         row_number += 3
 
         # ------------------------------------------------------------------------------------------------
         # Velocity kinematics
         # ------------------------------------------------------------------------------------------------
-        self.vk_entry_title = ttk.Label(self.control_frame, text="Velocity Kinematics:", font=("Arial", 13, "bold"))
+        self.vk_entry_title = ttk.Label(
+            self.control_frame, text="Velocity Kinematics:", font=("Arial", 13, "bold")
+        )
         self.vk_entry_title.grid(column=0, row=row_number, columnspan=2, pady=(0, 10))
         row_number += 1
 
-        self.vk_activate_button = ttk.Button(self.control_frame, text="Activate VK", command=self.activate_VK)
+        self.vk_activate_button = ttk.Button(
+            self.control_frame, text="Activate VK", command=self.activate_VK
+        )
         self.vk_activate_button.grid(column=0, row=row_number, columnspan=1, pady=2)
 
-        self.vk_deactivate_button = ttk.Button(self.control_frame, text="Deactivate VK", command=self.deactivate_VK)
+        self.vk_deactivate_button = ttk.Button(
+            self.control_frame, text="Deactivate VK", command=self.deactivate_VK
+        )
         self.vk_deactivate_button.grid(column=1, row=row_number, columnspan=1, pady=2)
         row_number += 3
 
         # ------------------------------------------------------------------------------------------------
         # Trajectory generation
         # ------------------------------------------------------------------------------------------------
-        self.tg_entry_title = ttk.Label(self.control_frame, text="Trajectory Generation:", font=("Arial", 13, "bold"))
+        self.tg_entry_title = ttk.Label(
+            self.control_frame,
+            text="Trajectory Generation:",
+            font=("Arial", 13, "bold"),
+        )
         self.tg_entry_title.grid(column=0, row=row_number, columnspan=2, pady=(0, 10))
         row_number += 1
 
-        self.tg_generate_button = ttk.Button(self.control_frame, text="Upload Waypoints", command=self.update_waypoints)
+        self.tg_generate_button = ttk.Button(
+            self.control_frame, text="Upload Waypoints", command=self.update_waypoints
+        )
         self.tg_generate_button.grid(column=0, row=row_number, columnspan=1, pady=2)
 
-        self.tg_follow_task_button = ttk.Button(self.control_frame, text="Generate (Task-space)", command=self.generate_traj_task_space)
+        self.tg_follow_task_button = ttk.Button(
+            self.control_frame,
+            text="Generate (Task-space)",
+            command=self.generate_traj_task_space,
+        )
         self.tg_follow_task_button.grid(column=1, row=row_number, columnspan=1, pady=2)
 
-        self.tg_follow_joint_button = ttk.Button(self.control_frame, text="Generate (Joint-space)", command=self.generate_traj_joint_space)
+        self.tg_follow_joint_button = ttk.Button(
+            self.control_frame,
+            text="Generate (Joint-space)",
+            command=self.generate_traj_joint_space,
+        )
         self.tg_follow_joint_button.grid(column=2, row=row_number, columnspan=1, pady=2)
         row_number += 1
-
 
     def joints_from_sliders(self, val):
         """
@@ -180,14 +223,12 @@ class Visualizer:
         theta = [float(th.get()) for th in self.joint_scales]
         self.update_FK(theta)
 
-
     def joints_from_button(self):
         """
         Updates the forward kinematics based on the joint angles entered in the input fields.
         """
         theta = [float(th.get()) for th in self.joint_button]
         self.update_FK(theta)
-
 
     def reset_joints(self):
         """
@@ -196,7 +237,6 @@ class Visualizer:
         theta = [0.0] * self.robot.num_joints
         self.robot.reset_ee_trajectory()
         self.update_FK(theta)
-
 
     def get_ee_from_input(self):
         EE = EndEffector()
@@ -207,7 +247,6 @@ class Visualizer:
         EE.roty = float(self.pose_button[4].get())
         EE.rotz = float(self.pose_button[5].get())
         return EE
-    
 
     def solve_IK1(self):
         """
@@ -215,20 +254,17 @@ class Visualizer:
         """
         self.update_IK(pose=self.get_ee_from_input(), soln=0)
 
-
     def solve_IK2(self):
         """
         Solves the inverse kinematics for a given end-effector pose using the second solution.
         """
         self.update_IK(pose=self.get_ee_from_input(), soln=1)
 
-
     def numerical_solve(self):
         """
         Solves the inverse kinematics for a given end-effector pose using a numerical method.
         """
         self.update_IK(pose=self.get_ee_from_input(), soln=1, numerical=True)
-
 
     def update_FK(self, theta: list, display_traj=False):
         """
@@ -239,14 +275,13 @@ class Visualizer:
         """
         if display_traj:
             self.robot.update_ee_trajectory()
-        
+
         try:
             self.robot.update_plot(angles=theta)
             self.canvas.draw()
             self.canvas.flush_events()
         except ValueError:
             tk.messagebox.showerror("Input Error", "Please enter valid numbers")
-
 
     def update_IK(self, pose: EndEffector, soln=0, numerical=False, display_traj=False):
         """
@@ -259,7 +294,7 @@ class Visualizer:
         """
         if display_traj:
             self.robot.update_ee_trajectory()
-        
+
         if numerical:
             self.robot.update_plot(pose=pose, soln=soln, numerical=False)
         else:
@@ -267,10 +302,8 @@ class Visualizer:
         self.canvas.draw()
         self.canvas.flush_events()
 
-
     def solve_IK(self, pose: EndEffector, soln=0):
         return self.robot.solve_inverse_kinematics(pose, soln=soln)
-
 
     def activate_VK(self):
         """
@@ -283,62 +316,67 @@ class Visualizer:
             self.canvas.flush_events()
             time.sleep(0.05)
 
-
     def deactivate_VK(self):
         """
         Deactivates velocity kinematics, stopping the robot's movement.
         """
         self.vk_status = False
 
-
     def update_waypoints(self):
         """
         Loads waypoints from a YAML file and updates the robot's internal waypoint list and plot.
         """
 
-        print('Updating waypoints...')
+        print("Updating waypoints...")
 
         # get pid_gains from yaml file
-        with open('waypoints.yml', 'r') as file:
+        with open("waypoints.yml", "r") as file:
             waypoints = yaml.safe_load(file)
 
         self.waypoint_idx = 0
-        self.robot.update_waypoints(waypoints['points'])
+        self.robot.update_waypoints(waypoints["points"])
         self.robot.plot_3D()
         self.canvas.draw()
 
-    
     def generate_traj_task_space(self):
         """
         Generates and visualizes a task-space trajectory using a polynomial interpolator between waypoints.
         """
-    
-        print('Following trajectory in task space...')
-    
+
+        print("Following trajectory in task space...")
+
         waypoints = self.robot.get_waypoints()
         q0 = waypoints[0]
         qf = waypoints[1]
 
-        traj = MultiAxisTrajectoryGenerator(method="cubic", mode="task", interval=[0, 1], ndof=len(q0), start_pos=q0, final_pos=qf)
+        traj = MultiAxisTrajectoryGenerator(
+            method="cubic",
+            mode="task",
+            interval=[0, 1],
+            ndof=len(q0),
+            start_pos=q0,
+            final_pos=qf,
+        )
         traj_dofs = traj.generate(nsteps=50)
 
         for i in range(50):
             pos = [dof[0][i] for dof in traj_dofs]
-            ee = EndEffector(*pos, 0, -math.pi/2, wraptopi(math.atan2(pos[1], pos[0]) + math.pi))
+            ee = EndEffector(
+                *pos, 0, -math.pi / 2, wraptopi(math.atan2(pos[1], pos[0]) + math.pi)
+            )
             self.update_IK(ee, soln=0, numerical=True, display_traj=True)
             time.sleep(0.05)
-        
+
         traj.plot()
 
-    
     def generate_traj_joint_space(self):
         """
         Generates and visualizes a joint-space trajectory by solving inverse kinematics at waypoints
         and interpolating between resulting joint configurations.
         """
 
-        print('Following trajectory in joint space...')
-        
+        print("Following trajectory in joint space...")
+
         waypoints = self.robot.get_waypoints()
 
         EE_0 = EndEffector(*waypoints[0], 0, 0, 0)
@@ -347,17 +385,23 @@ class Visualizer:
         q0 = np.rad2deg(self.robot.solve_inverse_kinematics(EE_0))
         qf = np.rad2deg(self.robot.solve_inverse_kinematics(EE_f))
 
-        traj = MultiAxisTrajectoryGenerator(method="cubic", mode="joint", interval=[0, 1], ndof=len(q0), start_pos=q0, final_pos=qf)
+        traj = MultiAxisTrajectoryGenerator(
+            method="cubic",
+            mode="joint",
+            interval=[0, 1],
+            ndof=len(q0),
+            start_pos=q0,
+            final_pos=qf,
+        )
 
         traj_dofs = traj.generate(nsteps=50)
 
         for i in range(50):
-            theta = [dof[0][i] for dof in traj_dofs]            
-            self.update_FK(theta=theta, display_traj=True) 
+            theta = [dof[0][i] for dof in traj_dofs]
+            self.update_FK(theta=theta, display_traj=True)
             time.sleep(0.05)
-        
-        traj.plot()
 
+        traj.plot()
 
     def check_vk_status(self):
         """
@@ -366,93 +410,93 @@ class Visualizer:
         Returns:
             str: The status of velocity kinematics ("Activated!" or "Deactivated!").
         """
-        return 'Deactivated!' if not self.vk_status else 'Activated!'
+        return "Deactivated!" if not self.vk_status else "Activated!"
 
+    # def on_press(self, key):
+    #     """
+    #     Handles key press events to control the velocity of the robot.
 
-    def on_press(self, key):
-        """
-        Handles key press events to control the velocity of the robot.
+    #     Args:
+    #         key (pynput.keyboard.Key): The key that was pressed.
+    #     """
+    #     if self.vk_status:
+    #         if key == keyboard.Key.up:
+    #             self.v[1] = 1
+    #         elif key == keyboard.Key.down:
+    #             self.v[1] = -1
+    #         elif key == keyboard.Key.left:
+    #             self.v[0] = -1
+    #         elif key == keyboard.Key.right:
+    #             self.v[0] = 1
+    #         elif hasattr(key, "char"):
+    #             if key.char == "w":
+    #                 self.v[2] = 1
+    #             elif key.char == "s":
+    #                 self.v[2] = -1
 
-        Args:
-            key (pynput.keyboard.Key): The key that was pressed.
-        """
-        if self.vk_status:
-            if key == keyboard.Key.up:
-                self.v[1] = 1
-            elif key == keyboard.Key.down:
-                self.v[1] = -1
-            elif key == keyboard.Key.left:
-                self.v[0] = -1
-            elif key == keyboard.Key.right:
-                self.v[0] = 1
-            elif hasattr(key, 'char'):
-                if key.char == 'w':
-                    self.v[2] = 1
-                elif key.char == 's':
-                    self.v[2] = -1
+    # def on_release(self, key):
+    #     """
+    #     Handles key release events to stop the robot's movement.
 
-
-    def on_release(self, key):
-        """
-        Handles key release events to stop the robot's movement.
-
-        Args:
-            key (pynput.keyboard.Key): The key that was released.
-        """
-        if key == keyboard.Key.up:
-            self.v[1] = 0
-        elif key == keyboard.Key.down:
-            self.v[1] = 0
-        elif key == keyboard.Key.left:
-            self.v[0] = 0
-        elif key == keyboard.Key.right:
-            self.v[0] = 0
-        elif hasattr(key, 'char'):
-            if key.char == 'w':
-                self.v[2] = 0
-            elif key.char == 's':
-                self.v[2] = 0
-
-
-
+    #     Args:
+    #         key (pynput.keyboard.Key): The key that was released.
+    #     """
+    #     if key == keyboard.Key.up:
+    #         self.v[1] = 0
+    #     elif key == keyboard.Key.down:
+    #         self.v[1] = 0
+    #     elif key == keyboard.Key.left:
+    #         self.v[0] = 0
+    #     elif key == keyboard.Key.right:
+    #         self.v[0] = 0
+    #     elif hasattr(key, "char"):
+    #         if key.char == "w":
+    #             self.v[2] = 0
+    #         elif key.char == "s":
+    #             self.v[2] = 0
 
 
 def get_robot_type(robot_type: str) -> str:
     """
     Maps the robot type argument to a human-readable string.
-    
+
     Args:
         robot_type (str): The robot type provided as input, e.g., '2-dof', 'scara', '5-dof'.
-        
+
     Returns:
         str: The corresponding robot type in a more readable format.
-        
+
     Raises:
         ValueError: If an unsupported robot type is provided.
     """
-    if robot_type == '2-dof':
-        return 'Two-DOF'
-    elif robot_type == 'scara':
-        return 'Scara'
-    elif robot_type == '5-dof':
-        return 'Five-DOF'
+    if robot_type == "2-dof":
+        return "Two-DOF"
+    elif robot_type == "scara":
+        return "Scara"
+    elif robot_type == "5-dof":
+        return "Five-DOF"
     else:
-        raise ValueError(f"[ERROR] Unsupported robot type '{robot_type}'. Please provide one of the available types ('2-dof', 'scara', '5-dof').")
-
+        raise ValueError(
+            f"[ERROR] Unsupported robot type '{robot_type}'. Please provide one of the available types ('2-dof', 'scara', '5-dof')."
+        )
 
 
 def main():
     """
     Main function to initialize the Robot Manipulator Visualization application.
-    
+
     Parses the robot type argument from the command line and initializes the
     visualization for the corresponding robot type.
     """
     # Argument parsing
-    parser = argparse.ArgumentParser(description="Robot Manipulator Visualization for Kinematics Analysis")
-    parser.add_argument('--robot_type', 
-                        help="Insert robot type, e.g., '2-dof', 'scara', '5-dof'. Default is '2-dof'.", 
-                        default='2-dof')
+    parser = argparse.ArgumentParser(
+        description="Robot Manipulator Visualization for Kinematics Analysis"
+    )
+    parser.add_argument(
+        "--robot_type",
+        help="Insert robot type, e.g., '2-dof', 'scara', '5-dof'. Default is '2-dof'.",
+        default="2-dof",
+    )
     args = parser.parse_args()
 
     try:
@@ -461,16 +505,16 @@ def main():
     except ValueError as e:
         print(str(e))
         return
-    
+
     # Initialization message
-    print(f"\nInitialized the Robot Manipulator Visualization for [ {robot_type} robot ] for Kinematics Analysis\n")
+    print(
+        f"\nInitialized the Robot Manipulator Visualization for [ {robot_type} robot ] for Kinematics Analysis\n"
+    )
 
     # Create the Tkinter root window and run the visualizer application
     root = tk.Tk()
     app = Visualizer(root, args)
     root.mainloop()
-
-
 
 
 if __name__ == "__main__":
