@@ -5,7 +5,7 @@ from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from modules.arm_models import Robot
 import math
-from helper_fcns.utils import wraptopi, EndEffector
+from modules.utils import wraptopi, EndEffector
 from modules.trajectory_generator import MultiAxisTrajectoryGenerator
 import time
 

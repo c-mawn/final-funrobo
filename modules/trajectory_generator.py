@@ -313,7 +313,8 @@ class QuinticPolynomial:
             self.X[i] = [q, qd, qdd]
         return self.X
 
-class TrapezoidVelocity():
+
+class TrapezoidVelocity:
     """
     Trapezoidal velocity profile generator for constant acceleration/deceleration phases.
     """
@@ -352,8 +353,8 @@ class TrapezoidVelocity():
         print("tf = ", tf)
 
         # calc values
-        peak_vel = 2 * delta_q/tf
-        t_blend = (-delta_q + peak_vel*tf)/peak_vel
+        peak_vel = 2 * delta_q / tf
+        t_blend = (-delta_q + peak_vel * tf) / peak_vel
 
         # check if t_blend is too long
         if (2 * t_blend) > delta_t:
@@ -361,19 +362,17 @@ class TrapezoidVelocity():
             peak_vel = 0.5 * delta_t * max_acc
 
             # re calc t_blend
-            t_blend = (-delta_q + peak_vel*tf)/peak_vel
-        
+            t_blend = (-delta_q + peak_vel * tf) / peak_vel
 
         # ignore this for now
         peak_acc = peak_vel / t_blend
-        
+
         # if peak_acc > max_acc:
         #     pass
-        
+
         # can i just,,, create a random self attribute?
         # without initializing it in the class????
         self.trap_traj_params = [peak_vel, peak_acc, t_blend]
-
 
     def generate(self, nsteps=100):
 
@@ -388,17 +387,17 @@ class TrapezoidVelocity():
         # calculate and store position, velocity, and acceleration
         # at each time in time_vec
         # separate into the three phases: acceleration, constant, deceleration
-        
+
         # am i supposed to be doing this for every dof? how?
         # thats what kene does in the cubic
         # maybe it doesn't matter for task space if this defines
         # the trajectory of the EE?
-        #q, qd, qdd = [], [], []
-       
+        # q, qd, qdd = [], [], []
+
         # for i in range(self.ndof): # iterate through all DOFs
         #     # make containers
         #     q, qd, qdd = [], [], []
-            
+
         #     for t in self.t:
         #         # acceleration
         #         if t <= tb:
@@ -424,39 +423,39 @@ class TrapezoidVelocity():
         # return self.X
 
         q, qd, qdd = [], [], []
-            
+
         for t in self.t:
             # acceleration
             if t <= tb:
-                q.append(q0 + 0.5*acc*(t**2))
-                qd.append(acc*t)
+                q.append(q0 + 0.5 * acc * (t**2))
+                qd.append(acc * t)
                 qdd.append(acc)
 
             # constant
             elif (t > tb) and (t <= (tf - tb)):
-                eqn1 = 0.5*(qf + q0 - vel*tf) + (vel*t)
+                eqn1 = 0.5 * (qf + q0 - vel * tf) + (vel * t)
                 q.append(eqn1)
                 qd.append(vel)
                 qdd.append(acc)
 
             # deceleration
             else:
-                eqn2 = qf - 0.5*acc*(tf**2) + acc*tf*t - 0.5*acc*(t**2)
+                eqn2 = qf - 0.5 * acc * (tf**2) + acc * tf * t - 0.5 * acc * (t**2)
                 q.append(eqn2)
-                qd.append(acc*tf - acc*t)
+                qd.append(acc * tf - acc * t)
                 qdd.append(-acc)
 
         self.X = [q, qd, qdd]
         print("got to trap generate")
         return self.X
 
-
         # may have to embedd the above in another for loop
         # something with self.t? and then num dof? idk self.t isnt even defined
 
         # gotta figure out how the thing is changing at each timestep
         # return a time vector with the pos, vel, and acc at each timestep?
-        
+
+
 class Spline:
     """
     Spline interpolation for smooth trajectories.
