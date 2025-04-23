@@ -245,7 +245,73 @@ class QuinticPolynomial:
     """
 
     def __init__(self, trajgen):
-        pass
+        self._copy_params(trajgen)
+        self.solve()
+
+    def _copy_params(self, trajgen):
+        self.start_pos = trajgen.start_pos
+        self.start_vel = trajgen.start_vel
+        self.start_acc = trajgen.start_acc
+        self.final_pos = trajgen.final_pos
+        self.final_vel = trajgen.final_vel
+        self.final_acc = trajgen.final_acc
+        self.T = trajgen.T
+        self.ndof = trajgen.ndof
+        self.X = [None] * self.ndof
+
+    def solve(self):
+        t0, tf = 0, self.T
+        self.A = np.array(
+            [
+                [1, t0, t0**2, t0**3, t0**4, t0 * 5],
+                [0, 1, 2 * t0, 3 * t0**2, 4 * t0**3, 5 * t0**4],
+                [0, 0, 2, 6 * t0, 12 * t0**2, 20 * t0**3],
+                [1, tf, tf**2, tf**3, tf**4, tf**5],
+                [0, 1, 2 * tf, 3 * tf**2, 4 * tf**3, 5 * tf**4],
+                [0, 0, 2, 6 * tf, 12 * tf**2, 20 * tf**3],
+            ]
+        )
+        self.b = np.zeros([6, self.ndof])
+
+        for i in range(self.ndof):
+            self.b[:, i] = [
+                self.start_pos[i],
+                self.start_vel[i],
+                self.start_acc[i],
+                self.final_pos[i],
+                self.final_vel[i],
+                self.final_acc[i],
+            ]
+
+        self.coeff = np.linalg.solve(self.A, self.b)
+
+    def generate(self, nsteps=100):
+        self.t = np.linspace(0, self.T, nsteps)
+
+        for i in range(self.ndof):  # iterate through all DOFs
+            q, qd, qdd = [], [], []
+            c = self.coeff[:, i]
+            for t in self.t:  # iterate through time, t
+                q.append(
+                    c[0]
+                    + c[1] * t
+                    + c[2] * t**2
+                    + c[3] * t**3
+                    + c[4] * t**4
+                    + c[5] * t**5
+                )
+                qd.append(
+                    c[1]
+                    + 2 * c[2] * t
+                    + 3 * c[3] * t**2
+                    + 4 * c[4] * t**3
+                    + 5 * c[5] * t**4
+                )
+                qdd.append(
+                    2 * c[2] + 6 * c[3] * t + 12 * c[4] * t**2 + 20 * c[5] * t**3
+                )
+            self.X[i] = [q, qd, qdd]
+        return self.X
 
 
 class Spline:
