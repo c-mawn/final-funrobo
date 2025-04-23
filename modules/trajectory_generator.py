@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
-import arm_models
+
+# import arm_models
 
 
 class MultiAxisTrajectoryGenerator:
