@@ -296,7 +296,7 @@ class Visualizer:
             self.robot.update_ee_trajectory()
 
         if numerical:
-            self.robot.update_plot(pose=pose, soln=soln, numerical=False)
+            self.robot.update_plot(pose=pose, soln=soln, numerical=True)
         else:
             self.robot.update_plot(pose=pose, soln=soln)
         self.canvas.draw()
@@ -350,7 +350,7 @@ class Visualizer:
         qf = waypoints[1]
 
         traj = MultiAxisTrajectoryGenerator(
-            method="cubic",
+            method="quintic",
             mode="task",
             interval=[0, 1],
             ndof=len(q0),
@@ -386,7 +386,7 @@ class Visualizer:
         qf = np.rad2deg(self.robot.solve_inverse_kinematics(EE_f))
 
         traj = MultiAxisTrajectoryGenerator(
-            method="cubic",
+            method="quintic",
             mode="joint",
             interval=[0, 1],
             ndof=len(q0),
