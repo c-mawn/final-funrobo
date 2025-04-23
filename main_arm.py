@@ -8,6 +8,9 @@ import math
 from modules.utils import wraptopi, EndEffector
 from modules.trajectory_generator import MultiAxisTrajectoryGenerator
 import time
+import sys
+
+sys.dont_write_bytecode = True
 
 # from pynput import keyboard
 import yaml
