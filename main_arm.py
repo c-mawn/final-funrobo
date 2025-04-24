@@ -348,7 +348,7 @@ class Visualizer:
         qf = waypoints[1]
 
         traj = MultiAxisTrajectoryGenerator(
-            method="quintic",
+            method="spline",
             mode="task",
             interval=[0, 1],
             ndof=len(q0),
@@ -384,7 +384,7 @@ class Visualizer:
         qf = np.rad2deg(self.robot.solve_inverse_kinematics(EE_f))
 
         traj = MultiAxisTrajectoryGenerator(
-            method="quintic",
+            method="spline",
             mode="joint",
             interval=[0, 1],
             ndof=len(q0),

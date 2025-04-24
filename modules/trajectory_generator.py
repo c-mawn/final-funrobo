@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
 
 import modules.arm_models as arm
+from helper_fcns.utils import EndEffector
 
 
 class MultiAxisTrajectoryGenerator:
@@ -477,6 +478,28 @@ class Spline:
         # create a 3d spline from the start point to the end point
         # using cubic spline interpolation
         t = np.linspace(0, self.T, nsteps)
-        cs = CubicSpline([0, self.T], [self.start_pos, self.final_pos])
+        spline_x = CubicSpline([0, self.T], [self.start_pos[0], self.final_pos[0]])
+        spline_y = CubicSpline([0, self.T], [self.start_pos[1], self.final_pos[1]])
+        spline_z = CubicSpline([0, self.T], [self.start_pos[2], self.final_pos[2]])
 
-        # finds position, velocity, and accel at each time step for each dof
+        points = [spline_x(t), spline_y(t), spline_z(t)]
+
+        ee = EndEffector()
+
+        bot = arm.Robot("5-dof")
+        thetas = []
+        for i, point in enumerate(points):
+            ee.x = spline_x(t)[i]
+            ee.y = spline_y(t)[i]
+            ee.z = spline_z(t)[i]
+            thetas.append(bot.solve_inverse_kinematics(ee))
+
+        # combines the positions, velocities, and accels into q, qd, qdd,
+        # and returns them
+        q, qd, qdd = [], [], []
+        for i in range(self.ndof):
+            q.append([thetas[i][0], thetas[i][1], thetas[i][2]])
+            qd.append([0, 0, 0])
+            qdd.append([0, 0, 0])
+        self.X = [q, qd, qdd]
+        return self.X
