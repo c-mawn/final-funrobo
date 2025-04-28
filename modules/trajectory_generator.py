@@ -171,6 +171,7 @@ class LinearInterp:
         pass  # Linear interpolation is directly computed in generate()
 
     def generate(self, nsteps=100):
+
         self.t = np.linspace(0, self.T, nsteps)
         for i in range(self.ndof):  # iterate through all DOFs
             q, qd, qdd = [], [], []
@@ -340,48 +341,53 @@ class TrapezoidVelocity:
         max_vel = 10
         max_acc = 6
 
-        # extract default travel time
-        # may change if it doesnt work for system
+        # extract travel time
         t0, tf = 0, self.T
-        q0, qf = self.start_pos[0], self.final_pos[0]
-
-        # pre calculate the differences of time and pos
         delta_t = tf - t0
-        delta_q = qf - q0
 
-        print("og q0, qf = ", self.start_pos, self.final_pos)
-        print("q0, qf ", q0, qf)
-        print("deltaq = ", delta_q)
-        print("tf = ", tf)
+        peak_vel_vec = []
+        peak_acc_vec = []
+        t_blend_vec = []
 
-        # calc values
-        peak_vel = 2 * delta_q / tf
-        t_blend = (-delta_q + peak_vel * tf) / peak_vel
+        for j in range(self.ndof):
 
-        # check if t_blend is too long
-        if (2 * t_blend) > delta_t:
-            # if t_blend is too long, scale vel
-            peak_vel = 0.5 * delta_t * max_acc
+            # extract stast and final coord in dimension j
+            q0, qf = self.start_pos[j], self.final_pos[j]
+            delta_q = qf - q0
 
-            # re calc t_blend
-            t_blend = (-delta_q + peak_vel * tf) / peak_vel
+            if delta_q == 0:
+                peak_vel_vec.append(0)
+                peak_acc_vec.append(0)
+                t_blend_vec.append(0)
+            else:
+                # calc peak velocity and time to blend
+                peak_vel = 2 * delta_q / tf
+                t_blend = (-delta_q + peak_vel * tf) / peak_vel
 
-        # ignore this for now
-        peak_acc = peak_vel / t_blend
+                # check if t_blend is too long
+                if (2 * t_blend) > delta_t:
+                    # if t_blend is too long, scale vel
+                    peak_vel = 0.5 * delta_t * max_acc
 
-        # if peak_acc > max_acc:
-        #     pass
+                    # re-calc t_blend
+                    t_blend = (-delta_q + peak_vel * tf) / peak_vel
 
-        # can i just,,, create a random self attribute?
-        # without initializing it in the class????
-        self.trap_traj_params = [peak_vel, peak_acc, t_blend]
+                # ignore postential issues w/ this for now
+                peak_acc = peak_vel / t_blend
+
+                # store answer
+                peak_vel_vec.append(peak_vel)
+                peak_acc_vec.append(peak_acc)
+                t_blend_vec.append(t_blend)
+
+        # return the calculated parameters
+        self.trap_traj_params = [peak_vel_vec, peak_acc_vec, t_blend_vec]
 
     def generate(self, nsteps=100):
 
         # extract parameters
-        vel, acc, tb = self.trap_traj_params
+        vel_vec, acc_vec, tb_vec = self.trap_traj_params
         t0, tf = 0, self.T
-        q0, qf = self.start_pos[0], self.final_pos[0]
 
         # get time vector
         self.t = np.linspace(t0, tf, nsteps)
@@ -390,72 +396,42 @@ class TrapezoidVelocity:
         # at each time in time_vec
         # separate into the three phases: acceleration, constant, deceleration
 
-        # am i supposed to be doing this for every dof? how?
-        # thats what kene does in the cubic
-        # maybe it doesn't matter for task space if this defines
-        # the trajectory of the EE?
-        # q, qd, qdd = [], [], []
+        for i in range(self.ndof): # iterate through all DOFs
+            # make containers
+            q, qd, qdd = [], [], []
+            q0, qf = self.start_pos[i], self.final_pos[i]
+            
+            # get vel, acc, and tb for the dof i
+            vel = vel_vec[i]
+            acc = acc_vec[i]
+            tb = tb_vec[i]
 
-        # for i in range(self.ndof): # iterate through all DOFs
-        #     # make containers
-        #     q, qd, qdd = [], [], []
+            for t in self.t:
+                # acceleration
+                if t <= tb:
+                    q.append(q0 + 0.5*acc*(t**2))
+                    qd.append(acc*t)
+                    qdd.append(acc)
 
-        #     for t in self.t:
-        #         # acceleration
-        #         if t <= tb:
-        #             q.append(q0 + 0.5*acc*(t**2))
-        #             qd.append(acc*t)
-        #             qdd.append(acc)
+                # constant
+                elif (t > tb) and (t <= (tf - tb)):
+                    eqn1 = 0.5*(qf + q0 - vel*tf) + (vel*t)
+                    q.append(eqn1)
+                    qd.append(vel)
+                    qdd.append(acc)
 
-        #         # constant
-        #         elif (t > tb) and (t <= (tf - tb)):
-        #             eqn1 = 0.5*(qf + q0 - vel*tf) + (vel*t)
-        #             q.append(eqn1)
-        #             qd.append(vel)
-        #             qdd.append(acc)
+                # deceleration
+                else:
+                    eqn2 = qf - 0.5*acc*(tf**2) + acc*tf*t - 0.5*acc*(t**2)
+                    q.append(eqn2)
+                    qd.append(acc*tf - acc*t)
+                    qdd.append(-acc)
 
-        #         # deceleration
-        #         else:
-        #             eqn2 = qf - 0.5*acc*(tf**2) + acc*tf*t - 0.5*acc*(t**2)
-        #             q.append(eqn2)
-        #             qd.append(acc*tf - acc*t)
-        #             qdd.append(-acc)
-
-        #     self.X[i] = [q, qd, qdd]
-        # return self.X
-
-        q, qd, qdd = [], [], []
-
-        for t in self.t:
-            # acceleration
-            if t <= tb:
-                q.append(q0 + 0.5 * acc * (t**2))
-                qd.append(acc * t)
-                qdd.append(acc)
-
-            # constant
-            elif (t > tb) and (t <= (tf - tb)):
-                eqn1 = 0.5 * (qf + q0 - vel * tf) + (vel * t)
-                q.append(eqn1)
-                qd.append(vel)
-                qdd.append(acc)
-
-            # deceleration
-            else:
-                eqn2 = qf - 0.5 * acc * (tf**2) + acc * tf * t - 0.5 * acc * (t**2)
-                q.append(eqn2)
-                qd.append(acc * tf - acc * t)
-                qdd.append(-acc)
-
-        self.X = [q, qd, qdd]
-        print("got to trap generate")
+            self.X[i] = [q, qd, qdd]
+        
+        # return the pos, vel, and acc info for every dimension
+        # and timestep here 
         return self.X
-
-        # may have to embedd the above in another for loop
-        # something with self.t? and then num dof? idk self.t isnt even defined
-
-        # gotta figure out how the thing is changing at each timestep
-        # return a time vector with the pos, vel, and acc at each timestep?
 
 
 class Spline:
