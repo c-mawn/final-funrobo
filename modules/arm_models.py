@@ -84,7 +84,7 @@ class Robot:
             if not numerical:
                 self.robot.calc_inverse_kinematics(pose, soln=soln)
             else:
-                self.robot.calc_numerical_ik(pose)
+                self.robot.solve_inverse_kinematics(pose)
         elif angles is not None:  # Forward kinematics case
             self.robot.calc_forward_kinematics(angles, radians=False)
         else:
@@ -1057,6 +1057,7 @@ class FiveDOFRobot:
 
         # move robot slightly out of zeros singularity
         q = [q[i] + np.random.rand() * 0.05 for i in range(self.num_dof)]
+        # print(f"\ncurrent q = {q}\n")
 
         while i < ilimit:
             i += 1
@@ -1072,9 +1073,12 @@ class FiveDOFRobot:
             e[2] = Te_d[2] - Te[2]
 
             # update q
-            J = self.jacobian(q)
+            # J = self.jacobian(q)
             # q += np.linalg.pinv(J) @ e
-            q += self.damped_inverse_jacobian(q) @ e
+            # print(f"\n{Te=}\n{Te_d=}\n")
+            x = self.damped_inverse_jacobian(q) @ np.transpose(e)
+            # print(f"\n\n{x}\n")
+            q += x
 
             # check for joint limits
             for j, th in enumerate(q):

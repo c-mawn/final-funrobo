@@ -98,23 +98,14 @@ class MultiAxisTrajectoryGenerator:
         self.sub1 = self.fig.add_subplot(3, 1, 1)  # Position plot
         self.sub2 = self.fig.add_subplot(3, 1, 2)  # Velocity plot
         self.sub3 = self.fig.add_subplot(3, 1, 3)  # Acceleration plot
-        self.sub1 = self.fig.add_subplot(3, 1, 1)  # Position plot
-        self.sub2 = self.fig.add_subplot(3, 1, 2)  # Velocity plot
-        self.sub3 = self.fig.add_subplot(3, 1, 3)  # Acceleration plot
 
-        self.fig.set_size_inches(8, 10)
         self.fig.set_size_inches(8, 10)
         self.fig.suptitle(self.mode + " Trajectory Generator", fontsize=16)
 
         colors = ["r", "g", "b", "m", "y"]
-        colors = ["r", "g", "b", "m", "y"]
 
         for i in range(self.ndof):
             # position plot
-            self.sub1.plot(
-                self.t, self.m.X[i][0], colors[i] + "o-", label=self.labels[i]
-            )
-            self.sub1.set_ylabel("position", fontsize=15)
             self.sub1.plot(
                 self.t, self.m.X[i][0], colors[i] + "o-", label=self.labels[i]
             )
@@ -127,19 +118,10 @@ class MultiAxisTrajectoryGenerator:
                 self.t, self.m.X[i][1], colors[i] + "o-", label=self.labels[i]
             )
             self.sub2.set_ylabel("velocity", fontsize=15)
-            self.sub2.plot(
-                self.t, self.m.X[i][1], colors[i] + "o-", label=self.labels[i]
-            )
-            self.sub2.set_ylabel("velocity", fontsize=15)
             self.sub2.grid(True)
             self.sub2.legend()
 
             # acceleration plot
-            self.sub3.plot(
-                self.t, self.m.X[i][2], colors[i] + "o-", label=self.labels[i]
-            )
-            self.sub3.set_ylabel("acceleration", fontsize=15)
-            self.sub3.set_xlabel("Time (secs)", fontsize=18)
             self.sub3.plot(
                 self.t, self.m.X[i][2], colors[i] + "o-", label=self.labels[i]
             )
@@ -447,7 +429,7 @@ class Spline:
         self.final_pos = trajgen.final_pos
         self.T = trajgen.T
         self.ndof = trajgen.ndof
-        self.X = []
+        self.X = [None] * self.ndof
 
     def generate(self, nsteps=100):
 
@@ -463,7 +445,7 @@ class Spline:
         spline_z = CubicSpline([0, self.T], [start[2], end[2]])
 
         points = []
-        for i in range(len(spline_x(t))):
+        for i in range(nsteps):
             points.append(
                 [
                     float(spline_x(t)[i]),
@@ -471,17 +453,27 @@ class Spline:
                     float(spline_z(t)[i]),
                 ]
             )
-            print(f"\n\n{points[i]}\n\n")
+            # print(f"\n\n{points[i]}\n\n")
 
         # combines the positions, velocities, and accels into q, qd, qdd,
         # and returns them
-        q, qd, qdd = [], [], []
-        for i in range(self.ndof):
-            for point in points:
-                q.append(point)
-                qd.append([0, 0, 0])
-                qdd.append([0, 0, 0])
-            self.X.append([q, qd, qdd])
+        # q, qd, qdd = [], [], []
+        # for i in range(self.ndof):
+        #     for point in points:
+        #         q.append(point)
+        #         qd.append([0, 0, 0])
+        #         qdd.append([0, 0, 0])
+        #     self.X.append([q, qd, qdd])
 
-        print(f"\n\n{self.X=}\n\n")
+        # print(f"\n\n{self.X=}\n\n")
+
+        print(f"\n\nPoints: {points}\n\n")
+        for i in range(self.ndof):  # iterate through all DOFs
+            q, qd, qdd = [], [], []
+            for j in range(nsteps):  # iterate through time, t
+                print(f"{i=} {j=}")
+                q.append(points[j][i])
+            qd = np.gradient(q, t)
+            qdd = np.gradient(qd, t)
+            self.X[i] = [q, qd, qdd]
         return self.X

@@ -356,12 +356,21 @@ class Visualizer:
             final_pos=qf,
         )
         traj_dofs = traj.generate(nsteps=50)
-
+        print(f"\n{traj_dofs=}\n")
         for i in range(50):
             pos = [dof[0][i] for dof in traj_dofs]
-            ee = EndEffector(
-                *pos, 0, -math.pi / 2, wraptopi(math.atan2(pos[1], pos[0]) + math.pi)
-            )
+            # ee = EndEffector(
+            #     pos[0],
+            #     pos[1],
+            #     pos[2],
+            #     0,
+            #     -math.pi / 2,
+            #     wraptopi(math.atan2(pos[1], pos[0]) + math.pi),
+            # )
+            ee = EndEffector()
+            ee.x = pos[0]
+            ee.y = pos[1]
+            ee.z = pos[2]
             self.update_IK(ee, soln=0, numerical=True, display_traj=True)
             time.sleep(0.05)
 
