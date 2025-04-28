@@ -396,11 +396,11 @@ class TrapezoidVelocity:
         # at each time in time_vec
         # separate into the three phases: acceleration, constant, deceleration
 
-        for i in range(self.ndof): # iterate through all DOFs
+        for i in range(self.ndof):  # iterate through all DOFs
             # make containers
             q, qd, qdd = [], [], []
             q0, qf = self.start_pos[i], self.final_pos[i]
-            
+
             # get vel, acc, and tb for the dof i
             vel = vel_vec[i]
             acc = acc_vec[i]
@@ -409,28 +409,28 @@ class TrapezoidVelocity:
             for t in self.t:
                 # acceleration
                 if t <= tb:
-                    q.append(q0 + 0.5*acc*(t**2))
-                    qd.append(acc*t)
+                    q.append(q0 + 0.5 * acc * (t**2))
+                    qd.append(acc * t)
                     qdd.append(acc)
 
                 # constant
                 elif (t > tb) and (t <= (tf - tb)):
-                    eqn1 = 0.5*(qf + q0 - vel*tf) + (vel*t)
+                    eqn1 = 0.5 * (qf + q0 - vel * tf) + (vel * t)
                     q.append(eqn1)
                     qd.append(vel)
                     qdd.append(acc)
 
                 # deceleration
                 else:
-                    eqn2 = qf - 0.5*acc*(tf**2) + acc*tf*t - 0.5*acc*(t**2)
+                    eqn2 = qf - 0.5 * acc * (tf**2) + acc * tf * t - 0.5 * acc * (t**2)
                     q.append(eqn2)
-                    qd.append(acc*tf - acc*t)
+                    qd.append(acc * tf - acc * t)
                     qdd.append(-acc)
 
             self.X[i] = [q, qd, qdd]
-        
+
         # return the pos, vel, and acc info for every dimension
-        # and timestep here 
+        # and timestep here
         return self.X
 
 
@@ -447,35 +447,41 @@ class Spline:
         self.final_pos = trajgen.final_pos
         self.T = trajgen.T
         self.ndof = trajgen.ndof
-        self.X = [None] * self.ndof
+        self.X = []
 
     def generate(self, nsteps=100):
 
         # create a 3d spline from the start point to the end point
         # using cubic spline interpolation
+
+        start = self.start_pos
+        end = self.final_pos
+
         t = np.linspace(0, self.T, nsteps)
-        spline_x = CubicSpline([0, self.T], [self.start_pos[0], self.final_pos[0]])
-        spline_y = CubicSpline([0, self.T], [self.start_pos[1], self.final_pos[1]])
-        spline_z = CubicSpline([0, self.T], [self.start_pos[2], self.final_pos[2]])
+        spline_x = CubicSpline([0, self.T], [start[0], end[0]])
+        spline_y = CubicSpline([0, self.T], [start[1], end[1]])
+        spline_z = CubicSpline([0, self.T], [start[2], end[2]])
 
-        points = [spline_x(t), spline_y(t), spline_z(t)]
-
-        ee = EndEffector()
-
-        bot = arm.Robot("5-dof")
-        thetas = []
-        for i, point in enumerate(points):
-            ee.x = spline_x(t)[i]
-            ee.y = spline_y(t)[i]
-            ee.z = spline_z(t)[i]
-            thetas.append(bot.solve_inverse_kinematics(ee))
+        points = []
+        for i in range(len(spline_x(t))):
+            points.append(
+                [
+                    float(spline_x(t)[i]),
+                    float(spline_y(t)[i]),
+                    float(spline_z(t)[i]),
+                ]
+            )
+            print(f"\n\n{points[i]}\n\n")
 
         # combines the positions, velocities, and accels into q, qd, qdd,
         # and returns them
         q, qd, qdd = [], [], []
         for i in range(self.ndof):
-            q.append([thetas[i][0], thetas[i][1], thetas[i][2]])
-            qd.append([0, 0, 0])
-            qdd.append([0, 0, 0])
-        self.X = [q, qd, qdd]
+            for point in points:
+                q.append(point)
+                qd.append([0, 0, 0])
+                qdd.append([0, 0, 0])
+            self.X.append([q, qd, qdd])
+
+        print(f"\n\n{self.X=}\n\n")
         return self.X
