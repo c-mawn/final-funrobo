@@ -862,8 +862,6 @@ class FiveDOFRobot:
             # raise ValueError
             return False
 
-        self.theta = q
-
         print(
             f"Solution found = {q} | Max pos error = {max(e, key=abs)} | # iterations: {i}/{ilimit}  \n"
         )
@@ -987,7 +985,7 @@ class FiveDOFRobot:
         else:
             return np.linalg.inv(self.jacobian())
 
-    def damped_inverse_jacobian(self, q=None, damping_factor=0.025):
+    def damped_inverse_jacobian(self, q=None, damping_factor=0.001):
         if q is not None:
             J = self.jacobian(q)
         else:
@@ -1047,7 +1045,7 @@ class FiveDOFRobot:
 
         return T[0] @ T[1] @ T[2] @ T[3] @ T[4] @ np.array([0, 0, 0, 1])
 
-    def solve_inverse_kinematics(self, EE: EndEffector, tol=1e-3, ilimit=500):
+    def solve_inverse_kinematics(self, EE: EndEffector, tol=0.01, ilimit=1000):
 
         Te_d = [EE.x, EE.y, EE.z]
 
@@ -1087,7 +1085,7 @@ class FiveDOFRobot:
             # Check if we have arrived
             if abs(max(e, key=abs)) < tol:
                 break
-
+        self.theta = q
         if abs(max(e, key=abs)) > tol:
             print(
                 "\n [ERROR] Numerical IK solution failed to converge... \n \
@@ -1102,6 +1100,8 @@ class FiveDOFRobot:
             )
             # raise ValueError
             return False
+
+        # print(f"thetas : {q}")
 
         return q
 

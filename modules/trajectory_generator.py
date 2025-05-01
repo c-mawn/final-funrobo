@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import CubicSpline
+import yaml
+
 
 import modules.arm_models as arm
 from helper_fcns.utils import EndEffector
@@ -436,13 +438,19 @@ class Spline:
         # create a 3d spline from the start point to the end point
         # using cubic spline interpolation
 
-        start = self.start_pos
-        end = self.final_pos
+        with open("waypoints.yml", "r") as file:
+            waypoints_pre = yaml.safe_load(file)
+        waypoints = waypoints_pre["points"]
 
+        way_x = [p[0] for p in waypoints]
+        way_y = [p[1] for p in waypoints]
+        way_z = [p[2] for p in waypoints]
+
+        t_waypoints = np.linspace(0, self.T, len(waypoints))
         t = np.linspace(0, self.T, nsteps)
-        spline_x = CubicSpline([0, self.T], [start[0], end[0]])
-        spline_y = CubicSpline([0, self.T], [start[1], end[1]])
-        spline_z = CubicSpline([0, self.T], [start[2], end[2]])
+        spline_x = CubicSpline(t_waypoints, way_x)
+        spline_y = CubicSpline(t_waypoints, way_y)
+        spline_z = CubicSpline(t_waypoints, way_z)
 
         points = []
         for i in range(nsteps):
@@ -467,11 +475,11 @@ class Spline:
 
         # print(f"\n\n{self.X=}\n\n")
 
-        print(f"\n\nPoints: {points}\n\n")
+        # print(f"\n\nPoints: {points}\n\n")
         for i in range(self.ndof):  # iterate through all DOFs
             q, qd, qdd = [], [], []
             for j in range(nsteps):  # iterate through time, t
-                print(f"{i=} {j=}")
+                # print(f"{i=} {j=}")
                 q.append(points[j][i])
             qd = np.gradient(q, t)
             qdd = np.gradient(qd, t)

@@ -345,7 +345,7 @@ class Visualizer:
 
         waypoints = self.robot.get_waypoints()
         q0 = waypoints[0]
-        qf = waypoints[1]
+        qf = waypoints[-1]
 
         traj = MultiAxisTrajectoryGenerator(
             method="spline",
@@ -356,7 +356,7 @@ class Visualizer:
             final_pos=qf,
         )
         traj_dofs = traj.generate(nsteps=50)
-        print(f"\n{traj_dofs=}\n")
+        # print(f"\n{traj_dofs=}\n")
         for i in range(50):
             pos = [dof[0][i] for dof in traj_dofs]
             # ee = EndEffector(
@@ -367,6 +367,7 @@ class Visualizer:
             #     -math.pi / 2,
             #     wraptopi(math.atan2(pos[1], pos[0]) + math.pi),
             # )
+            # print(f"\n{pos}\n")
             ee = EndEffector()
             ee.x = pos[0]
             ee.y = pos[1]
