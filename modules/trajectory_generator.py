@@ -456,9 +456,9 @@ class Spline:
         for i in range(nsteps):
             points.append(
                 [
-                    float(spline_x(t)[i]),
-                    float(spline_y(t)[i]),
-                    float(spline_z(t)[i]),
+                    round(float(spline_x(t)[i]), 4),
+                    round(float(spline_y(t)[i]), 4),
+                    round(float(spline_z(t)[i]), 4),
                 ]
             )
             # print(f"\n\n{points[i]}\n\n")

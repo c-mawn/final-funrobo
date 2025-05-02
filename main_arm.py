@@ -350,7 +350,7 @@ class Visualizer:
         traj = MultiAxisTrajectoryGenerator(
             method="spline",
             mode="task",
-            interval=[0, 1],
+            interval=[0, 3],
             ndof=len(q0),
             start_pos=q0,
             final_pos=qf,

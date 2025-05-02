@@ -1045,7 +1045,7 @@ class FiveDOFRobot:
 
         return T[0] @ T[1] @ T[2] @ T[3] @ T[4] @ np.array([0, 0, 0, 1])
 
-    def solve_inverse_kinematics(self, EE: EndEffector, tol=0.01, ilimit=1000):
+    def solve_inverse_kinematics(self, EE: EndEffector, tol=0.01, ilimit=500):
 
         Te_d = [EE.x, EE.y, EE.z]
 
@@ -1102,7 +1102,7 @@ class FiveDOFRobot:
             return False
 
         # print(f"thetas : {q}")
-
+        self.calc_forward_kinematics(self.theta, radians=True)
         return q
 
     def calc_robot_points(self):
