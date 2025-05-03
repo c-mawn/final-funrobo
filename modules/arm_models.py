@@ -985,7 +985,7 @@ class FiveDOFRobot:
         else:
             return np.linalg.inv(self.jacobian())
 
-    def damped_inverse_jacobian(self, q=None, damping_factor=0.001):
+    def damped_inverse_jacobian(self, q=None, damping_factor=0.1):
         if q is not None:
             J = self.jacobian(q)
         else:

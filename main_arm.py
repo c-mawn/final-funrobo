@@ -350,7 +350,7 @@ class Visualizer:
         traj = MultiAxisTrajectoryGenerator(
             method="spline",
             mode="task",
-            interval=[0, 3],
+            interval=[0, 1],
             ndof=len(q0),
             start_pos=q0,
             final_pos=qf,
@@ -394,7 +394,7 @@ class Visualizer:
         qf = np.rad2deg(self.robot.solve_inverse_kinematics(EE_f))
 
         traj = MultiAxisTrajectoryGenerator(
-            method="spline",
+            method="cubic",
             mode="joint",
             interval=[0, 1],
             ndof=len(q0),
