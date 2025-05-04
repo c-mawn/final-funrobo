@@ -302,6 +302,7 @@ class QuinticPolynomial:
             self.X[i] = [q, qd, qdd]
         return self.X
 
+
 class SepticPolynomial:
     """
     Septic interpolation with position, velocity, and acceleration constraints.
@@ -326,18 +327,54 @@ class SepticPolynomial:
 
         # extract the initial and final time
         t0, tf = 0, self.T
-
+        print(f"start and end: \n{self.start_pos}\n{self.final_pos}")
         # populate the A matrix
         self.A = np.array(
             [
-                [1, t0,  t0**2,     t0**3,      t0**4,      t0**5,       t0**6,       t0**7],  # q(t0)
-                [0,  1, 2 * t0, 3 * t0**2,  4 * t0**3,  5 * t0**4,   6 * t0**5,   7 * t0**6],  # v(t0)
-                [0,  0,      2,    6 * t0, 12 * t0**2, 20 * t0**3,  30 * t0**4,  42 * t0**5],  # a(t0)
-                [0,  0,      0,         6,    24 * t0, 60 * t0**2, 120 * t0**3, 210 * t0**4],  # j(t0)
-                [1, tf,  tf**2,     tf**3,      tf**4,      tf**5,       tf**6,       tf**7],  # q(tf)
-                [0,  1, 2 * tf, 3 * tf**2,  4 * tf**3,  5 * tf**4,   6 * tf**5,   7 * tf**6],  # v(tf)
-                [0,  0,      2,    6 * tf, 12 * tf**2, 20 * tf**3,  30 * tf**4,  42 * tf**5],  # a(tf)
-                [0,  0,      0,         6,    24 * tf, 60 * tf**2, 120 * tf**3, 210 * tf**4],  # j(tf)
+                [1, t0, t0**2, t0**3, t0**4, t0**5, t0**6, t0**7],  # q(t0)
+                [
+                    0,
+                    1,
+                    2 * t0,
+                    3 * t0**2,
+                    4 * t0**3,
+                    5 * t0**4,
+                    6 * t0**5,
+                    7 * t0**6,
+                ],  # v(t0)
+                [
+                    0,
+                    0,
+                    2,
+                    6 * t0,
+                    12 * t0**2,
+                    20 * t0**3,
+                    30 * t0**4,
+                    42 * t0**5,
+                ],  # a(t0)
+                [0, 0, 0, 6, 24 * t0, 60 * t0**2, 120 * t0**3, 210 * t0**4],  # j(t0)
+                [1, tf, tf**2, tf**3, tf**4, tf**5, tf**6, tf**7],  # q(tf)
+                [
+                    0,
+                    1,
+                    2 * tf,
+                    3 * tf**2,
+                    4 * tf**3,
+                    5 * tf**4,
+                    6 * tf**5,
+                    7 * tf**6,
+                ],  # v(tf)
+                [
+                    0,
+                    0,
+                    2,
+                    6 * tf,
+                    12 * tf**2,
+                    20 * tf**3,
+                    30 * tf**4,
+                    42 * tf**5,
+                ],  # a(tf)
+                [0, 0, 0, 6, 24 * tf, 60 * tf**2, 120 * tf**3, 210 * tf**4],  # j(tf)
             ]
         )
 
@@ -348,18 +385,18 @@ class SepticPolynomial:
                 self.start_pos[i],
                 self.start_vel[i],
                 self.start_acc[i],
+                0,  # start jerk 0
                 self.final_pos[i],
                 self.final_vel[i],
                 self.final_acc[i],
-                0,  # set start jerk to 0
                 0,  # set final jerk to 0
             ]
 
-        print("self.b", self.b[:, 0])
+        print("self.b", self.b)
         # solve for the coefficients
         self.coeff = np.linalg.solve(self.A, self.b)
         print("size self.coeff", self.coeff)
-        
+
     def generate(self, nsteps=100):
         self.t = np.linspace(0, self.T, nsteps)
 
@@ -387,9 +424,9 @@ class SepticPolynomial:
                     + 7 * c[7] * t**6
                 )
                 qdd.append(
-                    2 * c[2] 
-                    + 6 * c[3] * t 
-                    + 12 * c[4] * t**2 
+                    2 * c[2]
+                    + 6 * c[3] * t
+                    + 12 * c[4] * t**2
                     + 20 * c[5] * t**3
                     + 30 * c[6] * t**4
                     + 42 * c[7] * t**5
@@ -401,10 +438,11 @@ class SepticPolynomial:
                     + 120 * c[6] * t**3
                     + 210 * c[7] * t**4
                 )
-            self.X[i] = [q, qd, qdd] #, qddd]
+            self.X[i] = [q, qd, qdd]  # , qddd]
         # y = self.X
         return self.X
-    
+
+
 class TrapezoidVelocity:
     """
     Trapezoidal velocity profile generator for constant acceleration/deceleration phases.

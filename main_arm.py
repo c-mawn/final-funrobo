@@ -344,11 +344,11 @@ class Visualizer:
         print("Following trajectory in task space...")
 
         waypoints = self.robot.get_waypoints()
-        q0 = waypoints[0]
-        qf = waypoints[-1]
+        q0 = [0.15, 0.15, 0.35]  # waypoints[0]
+        qf = [0.05, -0.25, 0.45]  # waypoints[-1]
 
         traj = MultiAxisTrajectoryGenerator(
-            method="spline",
+            method="septic",
             mode="task",
             interval=[0, 1],
             ndof=len(q0),
@@ -388,13 +388,13 @@ class Visualizer:
         waypoints = self.robot.get_waypoints()
 
         EE_0 = EndEffector(*waypoints[0], 0, 0, 0)
-        EE_f = EndEffector(*waypoints[1], 0, 0, 0)
+        EE_f = EndEffector(*waypoints[-1], 0, 0, 0)
 
         q0 = np.rad2deg(self.robot.solve_inverse_kinematics(EE_0))
         qf = np.rad2deg(self.robot.solve_inverse_kinematics(EE_f))
-
+        print(f"\n{qf=}\n")
         traj = MultiAxisTrajectoryGenerator(
-            method="cubic",
+            method="septic",
             mode="joint",
             interval=[0, 1],
             ndof=len(q0),

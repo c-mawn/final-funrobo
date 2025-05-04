@@ -1099,7 +1099,7 @@ class FiveDOFRobot:
                 f"Max position error: {max(e, key=abs)} | # iterations: {i}/{ilimit} "
             )
             # raise ValueError
-            return False
+            return q
 
         # print(f"thetas : {q}")
         self.calc_forward_kinematics(self.theta, radians=True)
