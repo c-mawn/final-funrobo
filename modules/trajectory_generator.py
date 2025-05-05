@@ -327,7 +327,7 @@ class SepticPolynomial:
 
         # extract the initial and final time
         t0, tf = 0, self.T
-        print(f"start and end: \n{self.start_pos}\n{self.final_pos}")
+        # print(f"start and end: \n{self.start_pos}\n{self.final_pos}")
         # populate the A matrix
         self.A = np.array(
             [
@@ -392,10 +392,10 @@ class SepticPolynomial:
                 0,  # set final jerk to 0
             ]
 
-        print("self.b", self.b)
+        # print("self.b", self.b)
         # solve for the coefficients
         self.coeff = np.linalg.solve(self.A, self.b)
-        print("size self.coeff", self.coeff)
+        # print("size self.coeff", self.coeff)
 
     def generate(self, nsteps=100):
         self.t = np.linspace(0, self.T, nsteps)

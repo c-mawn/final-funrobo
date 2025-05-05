@@ -1,26 +1,25 @@
-# Module 1&2: Forward and Inverse Kinematics for Robot Manipulators
+# Analytical Comparison of Trajectory Generation Methods
+### Luca Odio, Alexander Qazilbash, Charlie Mawn
 
-This repository accompanies the class activities in modules 1&2 focusing on the following:
-1. **Forward position kinematics (FPK)**
-2. **Forward velocity kinematics (FVK)**
-3. **Inverse position kinematics (IPK)**
-4. Applied on three different arm configurations: **Two-DOF arm, SCARA robot, 5-DOF Hiwonder robot**
+## Overview
+This repository is intended to generate different trajectories for a robot arm manipulator, and analyze the differences between them. If the repo is already set up on your local machine, below is ways to use the code:
 
-This repository provides the **visualization tool (viz tool)** for testing your kinematics modeling and analysis code.
+To run the visualizer, and generate a trajectory:
+
+```bash
+python3 main_arm.py --robot_type 5-dof     # This is to open the viz tool
+# Click reset, upload waypoints, and generate trajectory
+```
+To Change trajectory generation method, go to `main_arm.py`, then change the `method` attribute to a different trajectory generation method (`"linear", "cubic", "quintic", "septic", "trapezoid", "spline"`) in the `generate_traj_task_space` or `generate_traj_joint_space` method. 
+
+To run a quick analysis on the trajectory generation methods, run the `main_traj.py` file, which is currently configured to analize the computational efficiency of each method
+
+If the local machine is not already set up to run this code, follow the instructions below to guide you for computational setup.
+
 
 ## Viz Tool
 
 <img src = "media/FPK.png">
-
-## Setting up your PC
-
-- You can complete this assignment on any computer OS: Mac, Windows, Linux, etc. All you need is Python 3 interpreter (code was tested using Python 3.10).
-
-#### Step 0 (Optional): Install VScode
-- Install Visual Studio Code (I strongly recommend using this, if you don’t already do. It’s the best IDE in my humble opinion)
-- Follow the instructions [here to install.](https://code.visualstudio.com/download)
-
-
 
 #### Step 1: Install Python 3 (if not already installed)
 - First, check if you have Python3, to do that, open your terminal and type:
@@ -83,13 +82,4 @@ $ python main_arm.py --robot_type scara
 <img src = "media/arm-kinematics-viz-tool.png">
 
 
-### Generative AI Use Disclosure
-- Please make sure to briefly describe what and how generative AI tools were used in developing the contents of your work.
-- Acceptable use:
-    - To research a related topic to the subject at hand
-    - As a substitute to "Stackoverflow" guides on quick programming how-tos, etc.
-- Unacceptable use:
-    - Directly copying large swaths of code from a ChatGPT response to a prompt in part or entirely related to the assignment's problem
-
-For instance, I used ChatGPT in generating the docstrings for the functions in this repository.
 

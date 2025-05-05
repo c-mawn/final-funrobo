@@ -342,13 +342,15 @@ class Visualizer:
         """
 
         print("Following trajectory in task space...")
+        # Timing for analysis
+        start_time = time.time()
 
         waypoints = self.robot.get_waypoints()
-        q0 = [0.15, 0.15, 0.35]  # waypoints[0]
-        qf = [0.05, -0.25, 0.45]  # waypoints[-1]
+        q0 = waypoints[0]
+        qf = waypoints[-1]
 
         traj = MultiAxisTrajectoryGenerator(
-            method="septic",
+            method="spline",
             mode="task",
             interval=[0, 1],
             ndof=len(q0),
@@ -356,6 +358,8 @@ class Visualizer:
             final_pos=qf,
         )
         traj_dofs = traj.generate(nsteps=50)
+        time_elapsed = time.time() - start_time
+        print(f"\n\n Time to generate Trajectory: {time_elapsed}\n")
         # print(f"\n{traj_dofs=}\n")
         for i in range(50):
             pos = [dof[0][i] for dof in traj_dofs]
@@ -384,6 +388,7 @@ class Visualizer:
         """
 
         print("Following trajectory in joint space...")
+        start_time = time.time()
 
         waypoints = self.robot.get_waypoints()
 
@@ -394,7 +399,7 @@ class Visualizer:
         qf = np.rad2deg(self.robot.solve_inverse_kinematics(EE_f))
         print(f"\n{qf=}\n")
         traj = MultiAxisTrajectoryGenerator(
-            method="septic",
+            method="spline",
             mode="joint",
             interval=[0, 1],
             ndof=len(q0),
@@ -403,7 +408,8 @@ class Visualizer:
         )
 
         traj_dofs = traj.generate(nsteps=50)
-
+        time_elapsed = time.time() - start_time
+        print(f"\n\n Time to generate Trajectory: {time_elapsed}\n")
         for i in range(50):
             theta = [dof[0][i] for dof in traj_dofs]
             self.update_FK(theta=theta, display_traj=True)
