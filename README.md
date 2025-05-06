@@ -2,8 +2,9 @@
 ### Luca Odio, Alexander Qazilbash, Charlie Mawn
 
 ## Overview
-This repository is intended to generate different trajectories for a robot arm manipulator, and analyze the differences between them. To read a full explaination, down load the full techincal report (`Funrobo Final Writeup.pdf`) in the main files of this repo
+This repository is intended to generate different trajectories for a robot arm manipulator, and analyze the differences between them. To read a full explaination, download the full techincal report (`Funrobo Final Writeup.pdf`) in the main files of this repo, or use [this link to our google doc](https://docs.google.com/document/d/1NXnxokbGtNPK4Ix7Rf1H444AwomtAVSGzRptKW3EOKU/edit?usp=sharing)
 
+To view a video demo of the project, watch [this video](https://youtu.be/8KKvN-fe4L8), more vide of the project can be found on that youtube channel, and all linked in the writeup
 
 If the repo is already set up on your local machine, below is ways to use the code:
 
